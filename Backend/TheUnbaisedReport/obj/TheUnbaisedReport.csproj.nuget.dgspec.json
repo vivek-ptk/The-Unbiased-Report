@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "H:\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\TheUnbaisedReport.csproj": {}
+    "C:\\Users\\LENOVO\\Desktop\\anonymous\\Webdev\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\TheUnbaisedReport.csproj": {}
   },
   "projects": {
-    "H:\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\TheUnbaisedReport.csproj": {
+    "C:\\Users\\LENOVO\\Desktop\\anonymous\\Webdev\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\TheUnbaisedReport.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "H:\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\TheUnbaisedReport.csproj",
+        "projectUniqueName": "C:\\Users\\LENOVO\\Desktop\\anonymous\\Webdev\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\TheUnbaisedReport.csproj",
         "projectName": "TheUnbaisedReport",
-        "projectPath": "H:\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\TheUnbaisedReport.csproj",
-        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "H:\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\obj\\",
+        "projectPath": "C:\\Users\\LENOVO\\Desktop\\anonymous\\Webdev\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\TheUnbaisedReport.csproj",
+        "packagesPath": "C:\\Users\\LENOVO\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\LENOVO\\Desktop\\anonymous\\Webdev\\The-Unbiased-Report\\Backend\\TheUnbaisedReport\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\LENOVO\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -42,9 +38,9 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "all"
+          "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -70,6 +66,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.15, 8.0.15]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[8.0.15, 8.0.15]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.15, 8.0.15]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[8.0.15, 8.0.15]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -78,7 +92,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
