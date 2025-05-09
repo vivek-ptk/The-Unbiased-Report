@@ -12,7 +12,7 @@ const categories = ["All", "Sports", "Politics", "Entertainment", "Technology", 
 const NewsCard = ({ id, heading, summary, date, place, category }: { id: string; heading: string; summary: string; date: string; place: string; category: string; }) => {
   const router = useRouter();
   return (
-    <Card className="rounded-xl shadow-md p-4 mb-4 cursor-pointer" onClick={() => router.push(`/article-details/${id}`)}>
+    <Card className="rounded-none shadow-md p-4 mb-4 cursor-pointer" onClick={() => router.push(`/article-details/${id}`)}>
       <CardContent className="p-0">
         <div className="flex items-center justify-between ">
           <h2 className={`text-xl font-semibold mb-2`}>{heading}</h2>
@@ -81,7 +81,9 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
 
   const totalPages = Math.ceil(newsData.length / ITEMS_PER_PAGE);
   const paginatedNews = newsData.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
+  const handleHomeClick = () => {
+    router.push('/');
+  };
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -118,8 +120,9 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
         style={{ fontFamily: "Tahoma, sans-serif" }}
       >
         <h1
+          onClick={handleHomeClick}
           className={classNames(
-            `font-serif font-bold transition-transform text-gray-800`,
+            `font-serif font-bold transition-transform text-gray-800 cursor-pointer`,
             scrolled ? "text-2xl text-left mb-1" : "text-4xl"
           )}
           style={{ fontFamily: '"Old English Text MT", serif' }}
@@ -129,25 +132,42 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
         <div className={classNames(!scrolled ? "border-t-3 mt-4 border-gray-500" : "h-8 mb-1 border-r-3 mx-4 border-gray-500")}></div>
         <nav
           className={classNames(
-            "flex flex-wrap gap-4 justify-center transition-transform mt-2 ",
-            scrolled ? "justify-start " : "mb-8 border-b border-gray-300 pb-2"
+            "flex flex-wrap gap-4 justify-center transition-transform mt-2",
+            scrolled ? "justify-start " : "mb-8 border-b border-gray-300 "
           )}
         >
-          {categories.map((cat) => (
-            <Button
+          {categories.map((cat) => {
+            const isSelected = selectedCategory === cat;
+            return (
+            <div 
+              className="hover:bg-gray-100 h-full group flex flex-col items-center cursor-pointer" 
               key={cat}
-              variant={selectedCategory === cat ? "default" : "ghost"}
-              className="text-md h-full font-medium hover:underline hover:text-black"
               onClick={() => {
                 setSelectedCategory(cat);
                 setPage(1);
                 router.push(cat === "All" ? "/" : `/${cat.toLowerCase()}`);
               }}
             >
-              <CategoryIcon category={cat} />
-              <span>{cat}</span>
-            </Button>
-          ))}
+              <Button
+                key={cat}
+                variant={"ghost"}
+                className={classNames( "text-md h-full font-medium  hover:text-black pointer-events-none",
+                  scrolled && isSelected ? "bg-muted" : ""
+                )}
+              >
+                <CategoryIcon category={cat} />
+                <span>{cat}</span>
+              </Button>
+              {/* Underline element */}
+              <div
+                className={classNames(
+                  "w-full h-0.5 transition-colors",
+                  isSelected ? "border-b-2 border-black" : "border-b-2 border-transparent group-hover:border-gray-500",
+                  scrolled ? "hidden" : "block"
+                )}
+              />
+            </div>
+          )})}
         </nav>
       </div>
 

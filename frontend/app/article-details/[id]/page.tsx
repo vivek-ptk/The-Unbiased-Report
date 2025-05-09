@@ -7,6 +7,7 @@ import { Send } from "lucide-react";
 import classNames from "classnames";
 import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react';
 import { Separator } from "@/components/ui/separator";
+import { useRouter } from "next/navigation";
 
 const conversation = [
   { sender: "user", text: "what is the news about" },
@@ -42,7 +43,15 @@ export default function ArticleDetail() {
   const { id } = useParams();
   const [scrolled, setScrolled] = useState(false);
   const [article, setArticle] = useState({ title: '', summary: '', date: '', location: '', category: 'All' });
+  const router = useRouter();
 
+  const handleHomeClick = () => {
+    router.push('/');
+  };
+
+  const handleCategoryClick = (category) => {
+    router.push(`/${category.toLowerCase()}`);
+  };
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -70,15 +79,16 @@ export default function ArticleDetail() {
       <div className="text-center mb-6 flex flex-col justify-center max-w-3xl">
         <div className={classNames("flex items-end mb-2", scrolled ? " fixed top-0 left-0 w-full z-50 bg-white shadow-md py-2 px-4 justify-center" : "justify-between")}>
           <h1
+            onClick={handleHomeClick}
             className={classNames(
-              "font-serif font-bold transition-transform text-gray-800 ", 
+              "font-serif font-bold transition-transform text-gray-800 cursor-pointer", 
               scrolled ? "transform-none text-2xl mr-3" : "transform translate-y-0 text-4xl"
             )}
             style={{ fontFamily: 'Old English Text MT, serif' }}
           >
             The Unbiased Report
           </h1>
-          <div className="flex items-center gap-2 ">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleCategoryClick(article.category)}>
             <div className={classNames("h-8 border-l-3 mx-4 border-gray-500", scrolled ? "" : "")}></div>
             <span style={{ fontFamily: "Tahoma, sans-serif" }} >{article.category}</span>
             <CategoryIcon category={article.category} size={18}/>
