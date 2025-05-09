@@ -2,12 +2,13 @@ const express = require("express");
 const router = express.Router();
 const connectToDB = require("../db");
 const axios = require("axios");
+const { ObjectId } = require("mongodb");
 
 const COLLECTION_NAME = "News";
 
 // Helper to project required fields
 const projectFields = {
-  projection: { _id: 0, id: 1, label: 1, summary: 1, title: 1, date: 1, time: 1, location: 1 },
+  projection: { _id: 1, id: 1, category: 1, summary: 1, title: 1, date: 1, time: 1, location: 1 },
 };
 
 const getNewsCollection = async () => {
@@ -21,12 +22,15 @@ router.get("/all", async (req, res) => {
   res.json(results);
 });
 
-const labels = ["technology", "politics", "sports", "entertainment", "business"];
+const categories = ["technology", "politics", "sports", "entertainment", "business"];
 
-labels.forEach((label) => {
-  router.get(`/${label}`, async (req, res) => {
+categories.forEach((category) => {
+  router.get(`/${category}`, async (req, res) => {
     const col = await getNewsCollection();
-    const results = await col.find({ label }, projectFields).toArray();
+    const results = await col.find(
+      { category: { $regex: `^${category}$`, $options: 'i' } }, // case-insensitive exact match
+      projectFields
+    ).toArray();
     res.json(results);
   });
 });
@@ -34,9 +38,16 @@ labels.forEach((label) => {
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const col = await getNewsCollection();
-  const item = await col.findOne({ id }, projectFields);
-  if (!item) return res.status(404).json({ error: "Item not found" });
-  res.json(item);
+
+  try {
+    const objectId = new ObjectId(id); // convert string to ObjectId
+    const item = await col.findOne({ _id: objectId }, projectFields);
+
+    if (!item) return res.status(404).json({ error: "Item not found" });
+    res.json(item);
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid ID format" });
+  }
 });
 
 router.post("/ask", async (req, res) => {
