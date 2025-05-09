@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
 import classNames from "classnames";
 import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react';
+import { Separator } from "@/components/ui/separator";
 
 const conversation = [
   { sender: "user", text: "what is the news about" },
@@ -21,6 +22,7 @@ const conversation = [
   { sender: "user", text: "explain" },
   { sender: "bot", text: "new policy will empower education in rural regions through subsidy in educational material" }
 ];
+
 const categories = ["All", "Sports", "Politics", "Entertainment", "Technology", "Business"];
 
 function CategoryIcon({ category, size = 24 }: { category: string; size?: number }) {
@@ -39,17 +41,7 @@ function CategoryIcon({ category, size = 24 }: { category: string; size?: number
 export default function ArticleDetail() {
   const { id } = useParams();
   const [scrolled, setScrolled] = useState(false);
-
-  const dummyNews = Array.from({ length: 45 }, (_, i) => ({
-    id: (i + 1).toString(),
-    heading: `Sample News Heading ${i + 1}`,
-    summary: `This is a sample summary for news item ${i + 1}. It contains brief details about the news topic.`,
-    date: `2025-05-08`,
-    place: `Location ${i + 1}`,
-    category: categories[i % categories.length],
-  }));
-
-  const article = dummyNews.find(news => news.id === id) || dummyNews[0];
+  const [article, setArticle] = useState({ title: '', summary: '', date: '', location: '', category: 'All' });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,6 +50,19 @@ export default function ArticleDetail() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    async function fetchArticle() {
+      try {
+        const res = await fetch(`http://localhost:5000/${id}`);
+        const data = await res.json();
+        setArticle(data);
+      } catch (err) {
+        console.error("Failed to fetch article:", err);
+      }
+    }
+    if (id) fetchArticle();
+  }, [id]);
 
   return (
     <main className="max-w-3xl mx-auto py-10 px-4">
@@ -84,16 +89,17 @@ export default function ArticleDetail() {
 
       {/* Article Content */}
       <section className="mb-6">
-        <h2 className={`text-2xl font-semibold mb-2`}>{article.heading}</h2>
+        <h2 className={`text-2xl font-semibold mb-2`}>{article.title}</h2>
         <p className="text-md text-gray-800 leading-relaxed mb-2">
           {article.summary}
         </p>
         <div className="flex justify-between text-sm text-gray-500">
           <span>{article.date}</span>
-          <span>{article.place}</span>
+          <span>{article.location}</span>
         </div>
       </section>
-
+      {/* Conversation */}
+      <Separator className="my-6" />
       <section className="mb-28 space-y-4">
         {conversation.map((msg, index) => (
           <div key={index} className={classNames("px-4 py-2 rounded-lg w-fit max-w-[80%]", msg.sender === "user" ? "bg-gray-100 self-end ml-auto" : "border self-start mr-auto")}> 

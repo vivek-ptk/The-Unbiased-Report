@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const categories = ["All", "Sports", "Politics", "Entertainment", "Technology", "Business"];
 
-const NewsCard = ({ id, heading, summary, date, place, category }: { id: number; heading: string; summary: string; date: string; place: string; category: string; }) => {
+const NewsCard = ({ id, heading, summary, date, place, category }: { id: string; heading: string; summary: string; date: string; place: string; category: string; }) => {
   const router = useRouter();
   return (
     <Card className="rounded-xl shadow-md p-4 mb-4 cursor-pointer" onClick={() => router.push(`/article-details/${id}`)}>
