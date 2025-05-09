@@ -1,41 +1,46 @@
 'use client'
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import classNames from "classnames";
-import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react'; // Import specific icons
+import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const categories = ["All", "Sports", "Politics", "Entertainment", "Technology", "Business"];
 
-const NewsCard = ({ heading, summary, date, place, category }: { heading: string; summary: string; date: string; place: string; category: string; }) => (
-  <Card className="rounded-xl shadow-md p-4 mb-4">
-    <CardContent className="p-0">
-      <div className="flex items-center justify-between ">
-        <h2 className={`text-xl font-semibold mb-2`}>{heading}</h2>
-        <CategoryIconSmall category={category} />
-      </div>
-      <p className="text-md text-gray-800 mb-4 leading-relaxed">{summary}</p>
-      <div className="flex justify-between text-sm text-gray-500">
-        <span>{date}</span>
-        <span>{place}</span>
-      </div>
-    </CardContent>
-  </Card>
-);
+const NewsCard = ({ id, heading, summary, date, place, category }: { id: number; heading: string; summary: string; date: string; place: string; category: string; }) => {
+  const router = useRouter();
+  return (
+    <Card className="rounded-xl shadow-md p-4 mb-4 cursor-pointer" onClick={() => router.push(`/article-details/${id}`)}>
+      <CardContent className="p-0">
+        <div className="flex items-center justify-between ">
+          <h2 className={`text-xl font-semibold mb-2`}>{heading}</h2>
+          <CategoryIconSmall category={category} />
+        </div>
+        <p className="text-md text-gray-800 mb-4 leading-relaxed">{summary}</p>
+        <div className="flex justify-between text-sm text-gray-500">
+          <span>{date}</span>
+          <span>{place}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const dummyNews = Array.from({ length: 45 }, (_, i) => ({
+  id: i + 1,
   heading: `Sample News Heading ${i + 1}`,
   summary: `This is a sample summary for news item ${i + 1}. It contains brief details about the news topic.`,
   date: `2025-05-08`,
   place: `Location ${i + 1}`,
-  category: categories[i % categories.length], // Assign a category based on the index
+  category: categories[i % categories.length],
 }));
 
 const ITEMS_PER_PAGE = 10;
 
 function CategoryIcon({ category, size = 24 }: { category: string; size?: number }) {
-  const iconSize = size; // Use a local variable for clarity
+  const iconSize = size;
   switch (category) {
     case "All":
       return <Newspaper size={iconSize} />;
@@ -53,12 +58,13 @@ function CategoryIcon({ category, size = 24 }: { category: string; size?: number
       return <Newspaper size={iconSize} />;
   }
 }
-function CategoryIconSmall({ category}: { category: string }) {
+
+function CategoryIconSmall({ category }: { category: string }) {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="text-sm"><CategoryIcon category={category} size={16}/></div>
+          <div className="text-sm"><CategoryIcon category={category} size={16} /></div>
         </TooltipTrigger>
         <TooltipContent>
           <p>{category}</p>
@@ -96,14 +102,14 @@ export default function Home() {
 
         <h1
           className={classNames(
-            `font-serif font-bold transition-transform text-gray-800`, 
+            `font-serif font-bold transition-transform text-gray-800`,
             scrolled ? "text-2xl text-left mb-1" : "text-4xl"
           )}
-          style={{ fontFamily: '"Old English Text MT", serif'}}
+          style={{ fontFamily: '"Old English Text MT", serif' }}
         >
           The Unbiased Report
         </h1>
-        <div className={classNames(!scrolled? "border-t-3 mt-4 border-gray-500" : "h-8 mb-1 border-r-3 mx-4 border-gray-500")}></div>
+        <div className={classNames(!scrolled ? "border-t-3 mt-4 border-gray-500" : "h-8 mb-1 border-r-3 mx-4 border-gray-500")}></div>
         <nav
           className={classNames(
             "flex flex-wrap gap-4 justify-center transition-transform mt-2 ",
@@ -125,9 +131,10 @@ export default function Home() {
 
       <div className={scrolled ? "pt-32" : ""}>
         <section>
-          {paginatedNews.map((news, idx) => (
+          {paginatedNews.map((news) => (
             <NewsCard
-              key={idx}
+              key={news.id}
+              id={news.id}
               heading={news.heading}
               summary={news.summary}
               date={news.date}

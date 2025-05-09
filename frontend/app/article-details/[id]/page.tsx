@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
@@ -20,6 +21,7 @@ const conversation = [
   { sender: "user", text: "explain" },
   { sender: "bot", text: "new policy will empower education in rural regions through subsidy in educational material" }
 ];
+const categories = ["All", "Sports", "Politics", "Entertainment", "Technology", "Business"];
 
 function CategoryIcon({ category, size = 24 }: { category: string; size?: number }) {
   const iconSize = size;
@@ -34,20 +36,21 @@ function CategoryIcon({ category, size = 24 }: { category: string; size?: number
   }
 }
 
-export default function ArticleDetail({
-  heading = "Sample News Heading",
-  summary = "This is a sample summary for the news item. It contains brief details about the news topic.",
-  date = "2025-05-08",
-  place = "Location",
-  category = "All"
-}: {
-  heading?: string,
-  summary?: string,
-  date?: string,
-  place?: string,
-  category?: string
-}) {
+export default function ArticleDetail() {
+  const { id } = useParams();
   const [scrolled, setScrolled] = useState(false);
+
+  const dummyNews = Array.from({ length: 45 }, (_, i) => ({
+    id: (i + 1).toString(),
+    heading: `Sample News Heading ${i + 1}`,
+    summary: `This is a sample summary for news item ${i + 1}. It contains brief details about the news topic.`,
+    date: `2025-05-08`,
+    place: `Location ${i + 1}`,
+    category: categories[i % categories.length],
+  }));
+
+  const article = dummyNews.find(news => news.id === id) || dummyNews[0];
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -72,8 +75,8 @@ export default function ArticleDetail({
           </h1>
           <div className="flex items-center gap-2 ">
             <div className={classNames("h-8 border-l-3 mx-4 border-gray-500", scrolled ? "" : "")}></div>
-            <span style={{ fontFamily: "Tahoma, sans-serif" }} >{category}</span>
-            <CategoryIcon category={category} size={18}/>
+            <span style={{ fontFamily: "Tahoma, sans-serif" }} >{article.category}</span>
+            <CategoryIcon category={article.category} size={18}/>
           </div>
         </div>
         <div className={"border-t-3 my-4 border-gray-500"}></div>
@@ -81,13 +84,13 @@ export default function ArticleDetail({
 
       {/* Article Content */}
       <section className="mb-6">
-        <h2 className={`text-2xl font-semibold mb-2`}>{heading}</h2>
+        <h2 className={`text-2xl font-semibold mb-2`}>{article.heading}</h2>
         <p className="text-md text-gray-800 leading-relaxed mb-2">
-          {summary}
+          {article.summary}
         </p>
         <div className="flex justify-between text-sm text-gray-500">
-          <span>{date}</span>
-          <span>{place}</span>
+          <span>{article.date}</span>
+          <span>{article.place}</span>
         </div>
       </section>
 

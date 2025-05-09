@@ -55,7 +55,28 @@ namespace TheUnbaisedReport.Controllers
             [HttpGet("business")]
             public async Task<ActionResult<IEnumerable<Report>>> GetBusiness() =>
                 Ok(await _reportService.GetByLabelAsync("business"));
-        }
+            [HttpGet("{id}")]
+            public async Task<ActionResult<Report>> GetById(string id)
+            {
+                var report = await _reportService.GetByIdAsync(id);
+                if (report == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(new
+                {
+                    report.Id,
+                    report.Label,
+                    report.Heading,
+                    report.Summary,
+                    report.Date,
+                    report.Time,
+                    report.Place,
+                    report.Context
+                });
+            }
+    }
 
     
 }

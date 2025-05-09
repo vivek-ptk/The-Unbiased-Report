@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Bson;
 using TheUnbaisedReport.Data;
 using TheUnbaisedReport.Model;
 
@@ -22,7 +23,12 @@ namespace TheUnbaisedReport.Service
 
             public async Task<List<Report>> GetByLabelAsync(string label) =>
                 await _reports.Find(r => r.Label.ToLower() == label.ToLower()).ToListAsync();
-        }
+            public async Task<Report?> GetByIdAsync(string id)
+            {
+                var objectId = new ObjectId(id);
+                return await _reportCollection.Find(r => r.Id == objectId).FirstOrDefaultAsync();
+            }
+    }
 
     
 }
