@@ -1,0 +1,110 @@
+'use client'
+import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Send } from "lucide-react";
+import classNames from "classnames";
+import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react';
+
+const conversation = [
+  { sender: "user", text: "what is the news about" },
+  { sender: "bot", text: "News states the new policy made by government" },
+  { sender: "user", text: "what is the news about" },
+  { sender: "bot", text: "News states the new policy made by government" },
+  { sender: "user", text: "what is the news about" },
+  { sender: "bot", text: "News states the new policy made by government" },
+  { sender: "user", text: "what is the news about" },
+  { sender: "bot", text: "News states the new policy made by government" },
+  { sender: "user", text: "what is the news about" },
+  { sender: "bot", text: "News states the new policy made by government" },
+  { sender: "user", text: "explain" },
+  { sender: "bot", text: "new policy will empower education in rural regions through subsidy in educational material" }
+];
+
+function CategoryIcon({ category, size = 24 }: { category: string; size?: number }) {
+  const iconSize = size;
+  switch (category) {
+    case "All": return <Newspaper size={iconSize} />;
+    case "Sports": return <Volleyball size={iconSize} />;
+    case "Politics": return <Flag size={iconSize} />;
+    case "Entertainment": return <Film size={iconSize} />;
+    case "Technology": return <Wifi size={iconSize} />;
+    case "Business": return <Briefcase size={iconSize} />;
+    default: return <Newspaper size={iconSize} />;
+  }
+}
+
+export default function ArticleDetail({
+  heading = "Sample News Heading",
+  summary = "This is a sample summary for the news item. It contains brief details about the news topic.",
+  date = "2025-05-08",
+  place = "Location",
+  category = "All"
+}: {
+  heading?: string,
+  summary?: string,
+  date?: string,
+  place?: string,
+  category?: string
+}) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <main className="max-w-3xl mx-auto py-10 px-4">
+      {/* Header */}
+      <div className="text-center mb-6 flex flex-col justify-center max-w-3xl">
+        <div className={classNames("flex items-end mb-2", scrolled ? " fixed top-0 left-0 w-full z-50 bg-white shadow-md py-2 px-4 justify-center" : "justify-between")}>
+          <h1
+            className={classNames(
+              "font-serif font-bold transition-transform text-gray-800 ", 
+              scrolled ? "transform-none text-2xl mr-3" : "transform translate-y-0 text-4xl"
+            )}
+            style={{ fontFamily: 'Old English Text MT, serif' }}
+          >
+            The Unbiased Report
+          </h1>
+          <div className="flex items-center gap-2 ">
+            <div className={classNames("h-8 border-l-3 mx-4 border-gray-500", scrolled ? "" : "")}></div>
+            <span style={{ fontFamily: "Tahoma, sans-serif" }} >{category}</span>
+            <CategoryIcon category={category} size={18}/>
+          </div>
+        </div>
+        <div className={"border-t-3 my-4 border-gray-500"}></div>
+      </div>
+
+      {/* Article Content */}
+      <section className="mb-6">
+        <h2 className={`text-2xl font-semibold mb-2`}>{heading}</h2>
+        <p className="text-md text-gray-800 leading-relaxed mb-2">
+          {summary}
+        </p>
+        <div className="flex justify-between text-sm text-gray-500">
+          <span>{date}</span>
+          <span>{place}</span>
+        </div>
+      </section>
+
+      <section className="mb-28 space-y-4">
+        {conversation.map((msg, index) => (
+          <div key={index} className={classNames("px-4 py-2 rounded-lg w-fit max-w-[80%]", msg.sender === "user" ? "bg-gray-100 self-end ml-auto" : "border self-start mr-auto")}> 
+            <p className="text-sm text-gray-900">{msg.text}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="fixed bottom-2 left-0 right-0 bg-white border rounded-lg px-4 py-2 flex items-center gap-2 max-w-3xl mx-auto">
+        <Textarea placeholder="Ask..." rows={1} className="flex-1 shadow-none max-h-[100px] resize-none border-0 focus:ring-0 focus-visible:ring-0" />
+        <Button variant="ghost" size="icon" className="text-gray-600 hover:text-black">
+          <Send className="h-5 w-5" />
+        </Button>
+      </section>
+    </main>
+  );
+}
