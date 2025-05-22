@@ -120,7 +120,7 @@ export default function ArticleDetail() {
 
       <section className="fixed bottom-2 left-0 right-0 bg-white border rounded-lg px-4 py-2 flex items-center gap-2 max-w-3xl mx-auto">
         <Textarea placeholder="Ask..." rows={1} className="flex-1 shadow-none max-h-[100px] resize-none border-0 focus:ring-0 focus-visible:ring-0" />
-        <Button variant="ghost" size="icon" className="text-gray-600 hover:text-black">
+        <Button variant="ghost" size="icon" className="cursor-pointer text-gray-600 hover:text-black" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>
           <Send className="h-5 w-5" />
         </Button>
       </section>

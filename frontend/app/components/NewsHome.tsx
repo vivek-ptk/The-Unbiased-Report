@@ -92,6 +92,9 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -186,9 +189,11 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
           ))}
         </section>
 
-        <div className="flex justify-between items-center mt-8">
+        {newsData.length > ITEMS_PER_PAGE && (
+          <div className="flex justify-between items-center mt-8">
           <Button
             variant="outline"
+            className="cursor-pointer"
             onClick={() => setPage((p) => Math.max(p - 1, 1))}
             disabled={page === 1}
           >
@@ -199,12 +204,13 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
           </span>
           <Button
             variant="outline"
+            className="cursor-pointer"
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
             disabled={page === totalPages}
           >
             Next
           </Button>
-        </div>
+        </div>)}
       </div>
     </main>
   );
