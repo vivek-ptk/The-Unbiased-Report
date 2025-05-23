@@ -5,6 +5,7 @@ const axios = require("axios");
 const { ObjectId } = require("mongodb");
 
 const COLLECTION_NAME = "aggregatedArticles";
+const PARSED_ARTICLES_COLLECTION_NAME = "parsedArticles";
 
 // Helper to project required fields
 const projectFields = {
@@ -15,6 +16,99 @@ const getNewsCollection = async () => {
   const db = await connectToDB();
   return db.collection(COLLECTION_NAME);
 };
+
+const getParsedArticlesCollection = async () => {
+  const db = await connectToDB();
+  return db.collection(PARSED_ARTICLES_COLLECTION_NAME);
+};
+
+// Method to get latest constituent articles by source
+async function getLatestConstituentArticlesBySource(clusteredArticleIdString) {
+  if (!clusteredArticleIdString) {
+    throw new Error("Article ID is required");
+  }
+
+  try {
+    const clusteredArticleOid = new ObjectId(clusteredArticleIdString);
+    const aggregatedCol = await getNewsCollection();
+    const parsedCol = await getParsedArticlesCollection();
+
+    // 1. Find the clustered article
+    const clusteredArticle = await aggregatedCol.findOne({ "_id": clusteredArticleOid });
+
+    if (!clusteredArticle) {
+      const error = new Error(`Clustered article with ID ${clusteredArticleIdString} not found.`);
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (!clusteredArticle.constituent_article_ids || clusteredArticle.constituent_article_ids.length === 0) {
+      const error = new Error(`Clustered article with ID ${clusteredArticleIdString} has no constituent_article_ids.`);
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const constituentIds = clusteredArticle.constituent_article_ids.map(idStr => {
+      try {
+        return new ObjectId(idStr);
+      } catch (e) {
+        console.warn(`Invalid ObjectId string in constituent_article_ids: ${idStr}`);
+        return null;
+      }
+    }).filter(id => id !== null);
+
+    if (constituentIds.length === 0) {
+      const error = new Error("No valid constituent article IDs found after processing.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // 2. Query constituent articles and select the latest from each source
+    const latestArticlesBySource = await parsedCol.aggregate([
+      {
+        $match: {
+          "_id": { $in: constituentIds }
+        }
+      },
+      {
+        $sort: {
+          "source": 1,
+          "published_at": -1
+        }
+      },
+      {
+        $group: {
+          _id: "$source",
+          latestArticle: { $first: "$$ROOT" }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: "$latestArticle" }
+      },
+      {
+        $sort: { "source": 1 }
+      }
+    ]).toArray();
+
+    if (latestArticlesBySource.length > 0) {
+      return latestArticlesBySource;
+    } else {
+      const error = new Error("No constituent articles found matching the criteria or an issue occurred during aggregation.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+  } catch (error) {
+    if (error.message && error.message.includes("Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer")) {
+      const newError = new Error(`Invalid ID format for main article: ${clusteredArticleIdString}`);
+      newError.statusCode = 400;
+      throw newError;
+    }
+    // Re-throw other errors, potentially adding more context or logging
+    console.error("Error in getLatestConstituentArticlesBySource:", error.message);
+    throw error; // Rethrow the original or a new error
+  }
+}
 
 router.get("/all", async (req, res) => {
   const col = await getNewsCollection();
@@ -50,6 +144,27 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// router.get("/latest/:id", async (req, res) => {
+//   const { id } = req.params;
+
+//   if (!id) {
+//     return res.status(400).json({ error: "ID is required" });
+//   }
+
+//   try {
+//     const latestArticles = await getLatestConstituentArticlesBySource(id);
+//     retObj = latestArticles.map(article => ({
+//       title: article.title,
+//       source: article.source,
+//       published_date: article.published_at,
+//     }));
+//     res.json(retObj);
+//   } catch (error) {
+//     console.error("Error fetching latest articles:", error);
+//     res.status(error.statusCode || 500).json({ error: error.message });
+//   }
+// });
+
 router.post("/ask", async (req, res) => {
   const { id, question, conversation } = req.body;
 
@@ -60,6 +175,8 @@ router.post("/ask", async (req, res) => {
   const col = await getNewsCollection();
   const newsItem = await col.findOne({ id }, { projection: { _id: 0, context: 1 } });
   
+  latestArticles = await getLatestConstituentArticlesBySource(id);
+  print(latestArticles);
 
   if (!newsItem) return res.status(404).json({ error: "News context not found" });
 
@@ -78,3 +195,7 @@ router.post("/ask", async (req, res) => {
 });
 
 module.exports = router;
+// To use the new method, you might export it as well:
+// module.exports = { router, getLatestConstituentArticlesBySource };
+// Or, if this file is only for routes, you might move getLatestConstituentArticlesBySource
+// to a different utility/service file and import it where needed.
