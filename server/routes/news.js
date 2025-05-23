@@ -92,6 +92,77 @@ async function getLatestConstituentArticlesBySource(clusteredArticleIdString) {
   }
 }
 
+
+async function getSourcesFromClusterId(clusterId){
+  if (!clusterId) {
+    throw new Error("Cluster ID is required");
+  }
+
+  try {
+    const aggregatedArticles = await getNewsCollection();
+    const parsedArticles = await getParsedArticlesCollection();
+    const cluster = await aggregatedArticles.findOne({ _id: new ObjectId(clusterId) });
+    if (!cluster) {
+      throw new Error(`Cluster with ID ${clusterId} not found`);
+    }
+    if (!cluster.constituent_article_ids || cluster.constituent_article_ids.length === 0) {
+      throw new Error(`Cluster with ID ${clusterId} has no constituent_article_ids`);
+    }
+    const constituentIds = cluster.constituent_article_ids.map(idStr => {
+      try {
+        return new ObjectId(idStr);
+      } catch (e) {
+        console.warn(`Invalid ObjectId string in constituent_article_ids: ${idStr}`);
+        return null;
+      }
+    }).filter(id => id !== null);
+
+    if (constituentIds.length === 0) {
+      throw new Error("No valid constituent article IDs found after processing");
+    }
+    // Fetch all articles in parallel
+    const articlePromises = constituentIds.map(id => 
+      parsedArticles.findOne({ _id: id }, { projection: { source: 1, url: 1, _id: 0 } }) // Added _id: 0 to exclude it if not needed
+    );
+    const articles = await Promise.all(articlePromises);
+    return articles.filter(article => article !== null); // Filter out any nulls if findOne didn't find an article
+  } catch (error) {
+    console.error("Error in getSourcesFromClusterId:", error.message);
+    throw error;
+  }
+}
+
+router.get("/sources/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "Missing 'id' parameter" });
+  }
+
+  try {
+    const sources = await getSourcesFromClusterId(id);
+
+    console.log(sources);
+
+    if (!sources || sources.length === 0) {
+      return res.status(404).json({ error: "No articles found" });
+    }
+
+    const sourceUrlPairs = sources
+      .filter(article => article.source && article.url)
+      .map(article => ({
+        source: article.source,
+        url: article.url
+      }));
+    console.log(sourceUrlPairs);
+
+    return res.status(200).json(sourceUrlPairs);
+  } catch (error) {
+    console.error("Error in /sources route:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/all", async (req, res) => {
   const col = await getNewsCollection();
   const results = await col.find({}, projectFields).toArray();
