@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TheUnbaisedReport")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4454674bff56afb3ecd67401cff8db6417244265")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d10f0c42eb0a7a6a407c47b316070898c3714b01")]
 [assembly: System.Reflection.AssemblyProductAttribute("TheUnbaisedReport")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TheUnbaisedReport")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

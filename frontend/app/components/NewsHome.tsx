@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const categories = ["All", "Sports", "Politics", "Entertainment", "Technology", "Business"];
 
-const NewsCard = ({ id, heading, summary, date, place, category }: { id: string; heading: string; summary: string; date: string; place: string; category: string; }) => {
+const NewsCard = ({ id, heading, summary, date, time, category }: { id: string; heading: string; summary: string; date: string; time:string; category: string; }) => {
   const router = useRouter();
   return (
     <Card className="rounded-none shadow-md p-4 mb-4 cursor-pointer" onClick={() => router.push(`/article-details/${id}`)}>
@@ -21,7 +21,7 @@ const NewsCard = ({ id, heading, summary, date, place, category }: { id: string;
         <p className="text-md text-gray-800 mb-4 leading-relaxed">{summary}</p>
         <div className="flex justify-between text-sm text-gray-500">
           <span>{date}</span>
-          <span>{place}</span>
+          <span>{time}</span>
         </div>
       </CardContent>
     </Card>
@@ -113,6 +113,24 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
     fetchNews();
   }, [selectedCategory]);
 
+  function getDate(input) {
+    const parsed = new Date(input);
+    if (!isNaN(parsed)) {
+      return parsed.toISOString().split('T')[0]; // YYYY-MM-DD
+    }
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  }
+  
+  function getTime(input) {
+    const parsed = new Date(input);
+    if (!isNaN(parsed)) {
+      return parsed.toTimeString().split(' ')[0]; // HH:MM:SS
+    }
+    const now = new Date();
+    return now.toTimeString().split(' ')[0];
+  }
+
   return (
     <main className="max-w-4xl mx-auto py-10 px-4">
       <div
@@ -181,9 +199,10 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
               key={news._id}
               id={news._id}
               heading={news.title}
-              summary={news.summary}
-              date={news.date}
-              place={news.location}
+              summary={news.content}
+              date={getDate(news.last_updated)}
+              time={getTime(news.last_updated)}
+              // place={news.location}
               category={news.category}
             />
           ))}

@@ -3,11 +3,12 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send } from "lucide-react";
+import { CircleAlert, Send } from "lucide-react";
 import classNames from "classnames";
 import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react';
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
+import { Report } from "./components/report";
 
 const conversation = [
   { sender: "user", text: "what is the news about" },
@@ -42,8 +43,25 @@ function CategoryIcon({ category, size = 24 }: { category: string; size?: number
 export default function ArticleDetail() {
   const { id } = useParams();
   const [scrolled, setScrolled] = useState(false);
-  const [article, setArticle] = useState({ title: '', summary: '', date: '', location: '', category: 'All' });
+  const [article, setArticle] = useState({ title: '', content: '', last_updated:'', category: 'All' });
   const router = useRouter();
+  function getDate(input) {
+    const parsed = new Date(input);
+    if (!isNaN(parsed)) {
+      return parsed.toISOString().split('T')[0]; // YYYY-MM-DD
+    }
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  }
+  
+  function getTime(input) {
+    const parsed = new Date(input);
+    if (!isNaN(parsed)) {
+      return parsed.toTimeString().split(' ')[0]; // HH:MM:SS
+    }
+    const now = new Date();
+    return now.toTimeString().split(' ')[0];
+  }
 
   const handleHomeClick = () => {
     router.push('/');
@@ -101,11 +119,18 @@ export default function ArticleDetail() {
       <section className="mb-6">
         <h2 className={`text-2xl font-semibold mb-2`}>{article.title}</h2>
         <p className="text-md text-gray-800 leading-relaxed mb-2">
-          {article.summary}
+          {article.content}
         </p>
         <div className="flex justify-between text-sm text-gray-500">
-          <span>{article.date}</span>
-          <span>{article.location}</span>
+          
+          <div className="flex items-center gap-2">
+            <span>{getTime(article.last_updated)}</span>
+            <Separator className="mx-2" orientation="vertical" />
+            <span>{getDate(article.last_updated)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Report />
+          </div>
         </div>
       </section>
       {/* Conversation */}

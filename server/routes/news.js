@@ -4,7 +4,7 @@ const connectToDB = require("../db");
 const axios = require("axios");
 const { ObjectId } = require("mongodb");
 
-const COLLECTION_NAME = "News";
+const COLLECTION_NAME = "aggregatedArticles";
 
 // Helper to project required fields
 const projectFields = {
