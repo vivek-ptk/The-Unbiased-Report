@@ -8,7 +8,7 @@ const COLLECTION_NAME = "aggregatedArticles";
 
 // Helper to project required fields
 const projectFields = {
-  projection: { _id: 1, id: 1, category: 1, summary: 1, title: 1, date: 1, time: 1, location: 1 },
+  projection: { _id: 1, id: 1, category: 1, content: 1, title: 1, last_updated:1},
 };
 
 const getNewsCollection = async () => {
@@ -59,6 +59,7 @@ router.post("/ask", async (req, res) => {
 
   const col = await getNewsCollection();
   const newsItem = await col.findOne({ id }, { projection: { _id: 0, context: 1 } });
+  
 
   if (!newsItem) return res.status(404).json({ error: "News context not found" });
 

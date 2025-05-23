@@ -90,7 +90,6 @@ export default function ArticleDetail() {
     }
     if (id) fetchArticle();
   }, [id]);
-
   return (
     <main className="max-w-3xl mx-auto py-10 px-4">
       {/* Header */}
