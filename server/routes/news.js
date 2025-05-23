@@ -3,12 +3,14 @@ import express from "express";
 import connectToDB from "../db.js"; // Note: Ensure `db.js` also uses ESM
 import axios from "axios";
 import { ObjectId } from "mongodb";
+import dotenv from "dotenv";
+dotenv.config();
 
 const router = express.Router();
 
 const COLLECTION_NAME = "aggregatedArticles";
 const PARSED_ARTICLES_COLLECTION_NAME = "parsedArticles";
-const ai = new GoogleGenAI({ apiKey: "AIzaSyBJV-ZB59OR_XSiGL7fEvyu3cQmIaa05qQ" });
+const ai = new GoogleGenAI({ apiKey: process.env.GENAI_API_KEY });
 
 const projectFields = {
   projection: { _id: 1, id: 1, category: 1, content: 1, title: 1, last_updated: 1 },
