@@ -1,15 +1,17 @@
-const express = require("express");
+import { GoogleGenAI } from "@google/genai";
+import express from "express";
+import connectToDB from "../db.js"; // Note: Ensure `db.js` also uses ESM
+import axios from "axios";
+import { ObjectId } from "mongodb";
+
 const router = express.Router();
-const connectToDB = require("../db");
-const axios = require("axios");
-const { ObjectId } = require("mongodb");
 
 const COLLECTION_NAME = "aggregatedArticles";
 const PARSED_ARTICLES_COLLECTION_NAME = "parsedArticles";
+const ai = new GoogleGenAI({ apiKey: "AIzaSyBJV-ZB59OR_XSiGL7fEvyu3cQmIaa05qQ" });
 
-// Helper to project required fields
 const projectFields = {
-  projection: { _id: 1, id: 1, category: 1, content: 1, title: 1, last_updated:1},
+  projection: { _id: 1, id: 1, category: 1, content: 1, title: 1, last_updated: 1 },
 };
 
 const getNewsCollection = async () => {
@@ -22,7 +24,6 @@ const getParsedArticlesCollection = async () => {
   return db.collection(PARSED_ARTICLES_COLLECTION_NAME);
 };
 
-// Method to get latest constituent articles by source
 async function getLatestConstituentArticlesBySource(clusteredArticleIdString) {
   if (!clusteredArticleIdString) {
     throw new Error("Article ID is required");
@@ -33,7 +34,6 @@ async function getLatestConstituentArticlesBySource(clusteredArticleIdString) {
     const aggregatedCol = await getNewsCollection();
     const parsedCol = await getParsedArticlesCollection();
 
-    // 1. Find the clustered article
     const clusteredArticle = await aggregatedCol.findOne({ "_id": clusteredArticleOid });
 
     if (!clusteredArticle) {
@@ -63,31 +63,12 @@ async function getLatestConstituentArticlesBySource(clusteredArticleIdString) {
       throw error;
     }
 
-    // 2. Query constituent articles and select the latest from each source
     const latestArticlesBySource = await parsedCol.aggregate([
-      {
-        $match: {
-          "_id": { $in: constituentIds }
-        }
-      },
-      {
-        $sort: {
-          "source": 1,
-          "published_at": -1
-        }
-      },
-      {
-        $group: {
-          _id: "$source",
-          latestArticle: { $first: "$$ROOT" }
-        }
-      },
-      {
-        $replaceRoot: { newRoot: "$latestArticle" }
-      },
-      {
-        $sort: { "source": 1 }
-      }
+      { $match: { "_id": { $in: constituentIds } } },
+      { $sort: { "source": 1, "published_at": -1 } },
+      { $group: { _id: "$source", latestArticle: { $first: "$$ROOT" } } },
+      { $replaceRoot: { newRoot: "$latestArticle" } },
+      { $sort: { "source": 1 } }
     ]).toArray();
 
     if (latestArticlesBySource.length > 0) {
@@ -99,14 +80,13 @@ async function getLatestConstituentArticlesBySource(clusteredArticleIdString) {
     }
 
   } catch (error) {
-    if (error.message && error.message.includes("Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer")) {
+    if (error.message?.includes("Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer")) {
       const newError = new Error(`Invalid ID format for main article: ${clusteredArticleIdString}`);
       newError.statusCode = 400;
       throw newError;
     }
-    // Re-throw other errors, potentially adding more context or logging
     console.error("Error in getLatestConstituentArticlesBySource:", error.message);
-    throw error; // Rethrow the original or a new error
+    throw error;
   }
 }
 
@@ -117,14 +97,10 @@ router.get("/all", async (req, res) => {
 });
 
 const categories = ["technology", "politics", "sports", "entertainment", "business"];
-
-categories.forEach((category) => {
+categories.forEach(category => {
   router.get(`/${category}`, async (req, res) => {
     const col = await getNewsCollection();
-    const results = await col.find(
-      { category: { $regex: `^${category}$`, $options: 'i' } }, // case-insensitive exact match
-      projectFields
-    ).toArray();
+    const results = await col.find({ category: { $regex: `^${category}$`, $options: 'i' } }, projectFields).toArray();
     res.json(results);
   });
 });
@@ -134,7 +110,7 @@ router.get("/:id", async (req, res) => {
   const col = await getNewsCollection();
 
   try {
-    const objectId = new ObjectId(id); // convert string to ObjectId
+    const objectId = new ObjectId(id);
     const item = await col.findOne({ _id: objectId }, projectFields);
 
     if (!item) return res.status(404).json({ error: "Item not found" });
@@ -144,26 +120,36 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// router.get("/latest/:id", async (req, res) => {
-//   const { id } = req.params;
+router.get("/latest-sources", async (req, res) => {
+  const { id } = req.params;
 
-//   if (!id) {
-//     return res.status(400).json({ error: "ID is required" });
-//   }
+  if (!id) {
+    return res.status(400).json({ error: "Missing 'id' parameter" });
+  }
 
-//   try {
-//     const latestArticles = await getLatestConstituentArticlesBySource(id);
-//     retObj = latestArticles.map(article => ({
-//       title: article.title,
-//       source: article.source,
-//       published_date: article.published_at,
-//     }));
-//     res.json(retObj);
-//   } catch (error) {
-//     console.error("Error fetching latest articles:", error);
-//     res.status(error.statusCode || 500).json({ error: error.message });
-//   }
-// });
+  try {
+    const latestArticles = await getLatestConstituentArticlesBySource(id);
+
+    if (!latestArticles || latestArticles.length === 0) {
+      return res.status(404).json({ error: "No articles found" });
+    }
+
+    const sourceUrlPairs = latestArticles
+      .filter(article => article.source && article.url)
+      .map(article => ({
+        source: article.source,
+        url: article.url
+      }));
+    
+      console.log(res.json(sourceUrlPairs));
+    return res.status(200).json(sourceUrlPairs);
+  } catch (error) {
+    console.error("Error in /sources route:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 
 router.post("/ask", async (req, res) => {
   const { id, question, conversation } = req.body;
@@ -172,30 +158,49 @@ router.post("/ask", async (req, res) => {
     return res.status(400).json({ error: "Invalid request payload" });
   }
 
-  const col = await getNewsCollection();
-  const newsItem = await col.findOne({ id }, { projection: { _id: 0, context: 1 } });
-  
-  latestArticles = await getLatestConstituentArticlesBySource(id);
-  print(latestArticles);
-
-  if (!newsItem) return res.status(404).json({ error: "News context not found" });
-
-  // Mock ML backend call
   try {
-    const mlResponse = await axios.post("http://ml-backend.local/api", {
-      question,
-      context: newsItem.context,
-      conversation,
+    const latestArticles = await getLatestConstituentArticlesBySource(id);
+    if (!latestArticles || latestArticles.length === 0) {
+      return res.status(404).json({ error: "No latest articles found" });
+    }
+
+    const articleSummaries = latestArticles.map(article => (
+      `Title: ${article.title}\nSource: ${article.source}\nURL: ${article.url}`
+    )).join("\n\n");
+
+    const contextText = `
+    You are an AI assistant. Based on the provided news context, conversation history, and latest articles, answer the user's question.
+
+    Respond ONLY the answer.
+    Donot use **markdown**.
+    Instead of **markdown** use plain text.
+    Donot answer any question that lies beyond the conversation history and latest articles.
+    Donot use any other information to answer the question.
+    
+    Conversation History:
+    ${conversation.join("\n")}
+
+    Latest Articles:
+    ${articleSummaries}
+
+    Question: ${question}
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemma-3-27b-it",
+      contents: [{ role: "user", parts: [{ text: contextText }] }],
     });
 
-    res.json({ id, answer: mlResponse.data.answer });
+    if (!response ) {
+      console.log(response);
+      return res.status(500).json({ error: "No response generated." });
+    } else {
+      return res.status(200).json({message: response.candidates[0].content.parts[0].text });
+    }
   } catch (error) {
-    res.status(500).json({ error: "ML backend error", details: error.message });
+    console.error("Error in /ask route:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-module.exports = router;
-// To use the new method, you might export it as well:
-// module.exports = { router, getLatestConstituentArticlesBySource };
-// Or, if this file is only for routes, you might move getLatestConstituentArticlesBySource
-// to a different utility/service file and import it where needed.
+export default router;

@@ -8,24 +8,9 @@ import classNames from "classnames";
 import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react';
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
-import { Report } from "./components/report";
+import SourcesDialog, {  } from "./components/source";
 
-const conversation = [
-  { sender: "user", text: "what is the news about" },
-  { sender: "bot", text: "News states the new policy made by government" },
-  { sender: "user", text: "what is the news about" },
-  { sender: "bot", text: "News states the new policy made by government" },
-  { sender: "user", text: "what is the news about" },
-  { sender: "bot", text: "News states the new policy made by government" },
-  { sender: "user", text: "what is the news about" },
-  { sender: "bot", text: "News states the new policy made by government" },
-  { sender: "user", text: "what is the news about" },
-  { sender: "bot", text: "News states the new policy made by government" },
-  { sender: "user", text: "explain" },
-  { sender: "bot", text: "new policy will empower education in rural regions through subsidy in educational material" }
-];
 
-const categories = ["All", "Sports", "Politics", "Entertainment", "Technology", "Business"];
 
 function CategoryIcon({ category, size = 24 }: { category: string; size?: number }) {
   const iconSize = size;
@@ -39,12 +24,22 @@ function CategoryIcon({ category, size = 24 }: { category: string; size?: number
     default: return <Newspaper size={iconSize} />;
   }
 }
-
+type Message = {
+  text: string;
+  sender: "user" | "assistant";
+};
 export default function ArticleDetail() {
   const { id } = useParams();
   const [scrolled, setScrolled] = useState(false);
   const [article, setArticle] = useState({ title: '', content: '', last_updated:'', category: 'All' });
+  const [question, setQuestion] = useState("");
+  const [conversation, setConversation] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [latestArticles, setLatestArticles] = useState([]);
+  const [allArticles, setAllArticles] = useState([]);
   const router = useRouter();
+  
+  
   function getDate(input) {
     const parsed = new Date(input);
     if (!isNaN(parsed)) {
@@ -90,6 +85,86 @@ export default function ArticleDetail() {
     }
     if (id) fetchArticle();
   }, [id]);
+
+  // useEffect(() => {
+  //   async function fetchLatestArticleLinks() {
+  //     try {
+  //       const res = await fetch(`http://localhost:5000/latest-sources?id=${id}`, {
+  //         method: "GET",
+  //         headers: { "Content-Type": "application/json" },
+  //       });
+  //       const data = await res.json();
+  //       console.log("latest sources : ", data);
+  //       setLatestArticles(data);
+  //     } catch (err) {
+  //       console.error("Failed to fetch articles:", err);
+  //     }
+  //   }
+  //   fetchLatestArticleLinks();
+  // }, [id]);
+  
+  // useEffect(() => {
+  //   async function fetchAllArticleLinks() {
+  //     try {
+  //       const res = await fetch(`http://localhost:5000/all-sources?id=${id}`, {
+  //         method: "GET",
+  //         headers: { "Content-Type": "application/json" },
+  //       });
+  //       const data = await res.json();
+  //       console.log("all sources : ", data);
+  //       setAllArticles(data);
+  //     } catch (err) {
+  //       console.error("Failed to fetch articles:", err);
+  //     }
+  //   }
+  //   fetchAllArticleLinks();
+  // }, [id]);
+  
+  
+
+  
+
+  const handleAsk = async () => {
+    if (!question.trim()) return;
+
+    try {
+      setLoading(true);
+      
+      setQuestion("");
+      setConversation((prev) => [
+        ...prev,
+        { text: question, sender: "user" },
+      ]);
+      
+      const response = await fetch("http://localhost:5000/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, question, conversation }),
+      });
+
+      const data = await response.json();
+      setLoading(false);
+      if (data.error) {
+        setConversation((prev) => [...prev, { text: data.error, sender: "assistant" }]);
+        return;
+      }
+      
+      setConversation((prev) => [
+        ...prev,
+        { text: data.message, sender: "assistant" },
+      ]);
+
+      
+      // window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth'});
+
+    } catch (error) {
+      console.error("Error calling /ask:", error);
+    }
+  };
+  useEffect(() => {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth'});
+  },[loading]);
+  console.log("conversation", conversation);
   return (
     <main className="max-w-3xl mx-auto py-10 px-4">
       {/* Header */}
@@ -128,23 +203,34 @@ export default function ArticleDetail() {
             <span>{getDate(article.last_updated)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Report />
+            <SourcesDialog latestArticles={latestArticles} allArticles={allArticles}/>
           </div>
         </div>
       </section>
       {/* Conversation */}
       <Separator className="my-6" />
       <section className="mb-28 space-y-4">
-        {conversation.map((msg, index) => (
-          <div key={index} className={classNames("px-4 py-2 rounded-lg w-fit max-w-[80%]", msg.sender === "user" ? "bg-gray-100 self-end ml-auto" : "border self-start mr-auto")}> 
-            <p className="text-sm text-gray-900">{msg.text}</p>
-          </div>
-        ))}
+      {conversation.length !== 0 && conversation.map((msg, index) => (
+        <div key={index} className={classNames(
+          "px-4 py-2 rounded-lg w-fit max-w-[80%]",
+          msg.sender === "user" ? "bg-gray-100 self-end ml-auto" : "border self-start mr-auto"
+        )}> 
+          <p className="text-sm text-gray-900">{msg.text}</p>
+        </div>
+      ))}
+
+      {loading && (
+        <div className="self-start mr-auto px-4 py-3 border rounded-lg w-fit max-w-[80%] flex items-center gap-1">
+          <div className="w-1 h-1 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-1 h-1 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-1 h-1 bg-gray-500 rounded-full animate-bounce"></div>
+        </div>
+      )}
       </section>
 
       <section className="fixed bottom-2 left-0 right-0 bg-white border rounded-lg px-4 py-2 flex items-center gap-2 max-w-3xl mx-auto">
-        <Textarea placeholder="Ask..." rows={1} className="flex-1 shadow-none max-h-[100px] resize-none border-0 focus:ring-0 focus-visible:ring-0" />
-        <Button variant="ghost" size="icon" className="cursor-pointer text-gray-600 hover:text-black" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>
+        <Textarea placeholder="Ask..." rows={1} className="flex-1 shadow-none max-h-[100px] resize-none border-0 focus:ring-0 focus-visible:ring-0" value={question} onChange={(e)=>{setQuestion(e.target.value)}} />
+        <Button variant="ghost" size="icon" className="cursor-pointer text-gray-600 hover:text-black" onClick={() => {window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth'}); handleAsk();}}>
           <Send className="h-5 w-5" />
         </Button>
       </section>
