@@ -184,7 +184,7 @@ router.get("/latestSources/:id", async (req, res) => {
         url: article.url
       }));
     
-      console.log(res.json(sourceUrlPairs));
+      console.log(sourceUrlPairs);
     return res.status(200).json(sourceUrlPairs);
   } catch (error) {
     console.error("Error in /sources route:", error);
@@ -222,34 +222,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.get("/latest-sources", async (req, res) => {
-  const { id } = req.params;
-
-  if (!id) {
-    return res.status(400).json({ error: "Missing 'id' parameter" });
-  }
-
-  try {
-    const latestArticles = await getLatestConstituentArticlesBySource(id);
-
-    if (!latestArticles || latestArticles.length === 0) {
-      return res.status(404).json({ error: "No articles found" });
-    }
-
-    const sourceUrlPairs = latestArticles
-      .filter(article => article.source && article.url)
-      .map(article => ({
-        source: article.source,
-        url: article.url
-      }));
-    
-      console.log(res.json(sourceUrlPairs));
-    return res.status(200).json(sourceUrlPairs);
-  } catch (error) {
-    console.error("Error in /sources route:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 
 

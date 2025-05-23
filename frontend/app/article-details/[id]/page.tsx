@@ -9,6 +9,7 @@ import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import SourcesDialog, {  } from "./components/source";
+import axios from "axios";
 
 
 
@@ -35,8 +36,9 @@ export default function ArticleDetail() {
   const [question, setQuestion] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  const [latestArticles, setLatestArticles] = useState([]);
-  const [allArticles, setAllArticles] = useState([]);
+  const [latestSources, setLatestSources] = useState<{ source: string; url: string }[]>([]);
+  const [sources, setSources] = useState<{ source: string; url: string }[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   
   
@@ -86,39 +88,41 @@ export default function ArticleDetail() {
     if (id) fetchArticle();
   }, [id]);
 
-  // useEffect(() => {
-  //   async function fetchLatestArticleLinks() {
-  //     try {
-  //       const res = await fetch(`http://localhost:5000/latest-sources?id=${id}`, {
-  //         method: "GET",
-  //         headers: { "Content-Type": "application/json" },
-  //       });
-  //       const data = await res.json();
-  //       console.log("latest sources : ", data);
-  //       setLatestArticles(data);
-  //     } catch (err) {
-  //       console.error("Failed to fetch articles:", err);
-  //     }
-  //   }
-  //   fetchLatestArticleLinks();
-  // }, [id]);
-  
-  // useEffect(() => {
-  //   async function fetchAllArticleLinks() {
-  //     try {
-  //       const res = await fetch(`http://localhost:5000/all-sources?id=${id}`, {
-  //         method: "GET",
-  //         headers: { "Content-Type": "application/json" },
-  //       });
-  //       const data = await res.json();
-  //       console.log("all sources : ", data);
-  //       setAllArticles(data);
-  //     } catch (err) {
-  //       console.error("Failed to fetch articles:", err);
-  //     }
-  //   }
-  //   fetchAllArticleLinks();
-  // }, [id]);
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchSources = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/allSources/${id}`);
+        setSources(res.data);
+        setError(null);
+      } catch (err: any) {
+        setError(err.response?.data?.error || "Failed to fetch sources");
+        setSources([]);
+      } finally {
+      }
+    };
+
+    fetchSources();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchLatestSources = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/latestSources/${id}`);
+        setLatestSources(res.data);
+        setError(null);
+      } catch (err: any) {
+        setError(err.response?.data?.error || "Failed to fetch latest sources");
+        setLatestSources([]);
+      } finally {
+      }
+    };
+
+    fetchLatestSources();
+  }, [id]);
   
   
 
@@ -203,12 +207,12 @@ export default function ArticleDetail() {
             <span>{getDate(article.last_updated)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <SourcesDialog latestArticles={latestArticles} allArticles={allArticles}/>
+            <SourcesDialog latestArticles={latestSources} allArticles={sources}/>
           </div>
         </div>
       </section>
       {/* Conversation */}
-      <Separator className="my-6" />
+      {conversation.length !== 0 && (<Separator className="my-6" />)}
       <section className="mb-28 space-y-4">
       {conversation.length !== 0 && conversation.map((msg, index) => (
         <div key={index} className={classNames(
