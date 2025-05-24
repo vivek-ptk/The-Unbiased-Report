@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import SourcesDialog, {  } from "./components/source";
 import axios from "axios";
+import BiasDialog from "./components/bias";
 
 
 
@@ -207,6 +208,7 @@ export default function ArticleDetail() {
             <span>{getDate(article.last_updated)}</span>
           </div>
           <div className="flex items-center gap-2">
+            <BiasDialog />
             <SourcesDialog latestArticles={latestSources} allArticles={sources}/>
           </div>
         </div>
