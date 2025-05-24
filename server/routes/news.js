@@ -192,6 +192,36 @@ router.get("/latestSources/:id", async (req, res) => {
   }
 });
 
+router.get("/getBiasAnalysis/:id", async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ error: "Missing 'id' parameter" });
+  }
+  try {
+    const aggregatedCol = await getNewsCollection();
+    // Ensure we are projecting the article_analysis field
+    const article = await aggregatedCol.findOne({ _id: new ObjectId(id) }, { projection: { article_analysis: 1, _id: 0 } }); 
+    if (!article) {
+      return res.status(404).json({ error: "Article not found" });
+    }
+    // The biasAnalysis is the article_analysis field itself
+    const biasAnalysis = article.article_analysis;
+    
+    if (!biasAnalysis || (Array.isArray(biasAnalysis) && biasAnalysis.length === 0)) {
+      // You might want to return an empty array or a specific message if no analysis is present
+      return res.status(200).json([]); // Or { message: "No bias analysis available for this article." }
+    }
+
+    return res.status(200).json(biasAnalysis);
+  } catch (error) {
+    console.error("Error in /getBiasAnalysis route:", error);
+    if (error.message?.includes("Argument passed in must be a string of 12 bytes or a string of 24 hex characters or an integer")) {
+      return res.status(400).json({ error: `Invalid ID format: ${id}` });
+    }
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/all", async (req, res) => {
   const col = await getNewsCollection();
   const results = await col.find({}, projectFields).toArray();
