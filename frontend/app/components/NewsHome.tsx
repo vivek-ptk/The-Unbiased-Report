@@ -80,7 +80,9 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
   const [newsData, setNewsData] = useState<any[]>([]);
 
   const totalPages = Math.ceil(newsData.length / ITEMS_PER_PAGE);
-  const paginatedNews = newsData.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedNews = newsData
+  .filter(item => item.content && item.content.trim() !== "")
+  .slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const handleHomeClick = () => {
     router.push('/');
   };

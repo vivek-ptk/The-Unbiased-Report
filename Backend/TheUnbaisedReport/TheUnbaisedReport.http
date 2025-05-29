@@ -1,6 +1,0 @@
-@TheUnbaisedReport_HostAddress = http://localhost:5251
-
-GET {{TheUnbaisedReport_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

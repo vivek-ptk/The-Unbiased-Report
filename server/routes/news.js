@@ -224,7 +224,7 @@ router.get("/getBiasAnalysis/:id", async (req, res) => {
 
 router.get("/all", async (req, res) => {
   const col = await getNewsCollection();
-  const results = await col.find({}, projectFields).toArray();
+  const results = await col.find({}, projectFields).sort({ last_updated: -1 }).toArray();
   res.json(results);
 });
 
