@@ -51,6 +51,7 @@ Two components:
 
 ![Bias Report Component](./assets/bias-report.png)
 ![Latest Source Articles](./assets/source-articles.png)
+![Latest Source Articles hover](./assets/source-articles-hover.png)
 
 #### 2. 💬 Ask a Question
 - Users can **ask questions** about the article.
