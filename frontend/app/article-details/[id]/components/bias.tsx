@@ -55,7 +55,7 @@ export default function BiasDialog() {
     const fetchBiasAnalysis = async () => {
       if (!id) return;
       try {
-        const response = await axios.get(`http://localhost:5000/getBiasAnalysis/${id}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/getBiasAnalysis/${id}`);
         console.log("response " ,response);
         console.log(response.data);
         setBiasAnalysis(response.data);

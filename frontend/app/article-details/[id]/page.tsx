@@ -79,7 +79,8 @@ export default function ArticleDetail() {
   useEffect(() => {
     async function fetchArticle() {
       try {
-        const res = await fetch(`http://localhost:5000/${id}`);
+        console.log(process.env.BACKEND_URL)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/${id}`);
         const data = await res.json();
         setArticle(data);
       } catch (err) {
@@ -94,7 +95,7 @@ export default function ArticleDetail() {
 
     const fetchSources = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/allSources/${id}`);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/allSources/${id}`);
         setSources(res.data);
         setError(null);
       } catch (err: any) {
@@ -112,7 +113,7 @@ export default function ArticleDetail() {
 
     const fetchLatestSources = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/latestSources/${id}`);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/latestSources/${id}`);
         setLatestSources(res.data);
         setError(null);
       } catch (err: any) {
@@ -141,7 +142,7 @@ export default function ArticleDetail() {
         { text: question, sender: "user" },
       ]);
       
-      const response = await fetch("http://localhost:5000/ask", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, question, conversation }),

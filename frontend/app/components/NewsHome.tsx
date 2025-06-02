@@ -101,7 +101,7 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const endpoint = `http://localhost:5000/${selectedCategory.toLowerCase()}`;
+        const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_URL}/${selectedCategory.toLowerCase()}`;
 
         const res = await fetch(endpoint);
         const data = await res.json();
