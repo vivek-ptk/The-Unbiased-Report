@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import classNames from "classnames";
 import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Spinner } from "@/components/ui/spinner";
 
 const categories = ["All", "Sports", "Politics", "Entertainment", "Technology", "Business"];
 
@@ -78,6 +79,7 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
   const [scrolled, setScrolled] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [newsData, setNewsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const totalPages = Math.ceil(newsData.length / ITEMS_PER_PAGE);
   const paginatedNews = newsData
@@ -102,13 +104,15 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
     const fetchNews = async () => {
       try {
         const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_URL}/${selectedCategory.toLowerCase()}`;
-
+        setLoading(true);
         const res = await fetch(endpoint);
         const data = await res.json();
         setNewsData(data);
+        setLoading(false);
       } catch (error) {
         console.error("Failed to fetch news:", error);
         setNewsData([]);
+        setLoading(false);
       }
     };
 
@@ -172,7 +176,6 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
               }}
             >
               <Button
-                key={cat}
                 variant={"ghost"}
                 className={classNames( "text-md h-full font-medium  hover:text-black pointer-events-none",
                   scrolled && isSelected ? "bg-muted" : ""
@@ -195,20 +198,31 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
       </div>
 
       <div className={scrolled ? "pt-32" : ""}>
-        <section>
-          {paginatedNews.map((news) => (
-            <NewsCard
-              key={news._id}
-              id={news._id}
-              heading={news.title}
-              summary={news.content}
-              date={getDate(news.last_updated)}
-              time={getTime(news.last_updated)}
-              // place={news.location}
-              category={news.category}
-            />
-          ))}
-        </section>
+        {
+          loading ? (
+            <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+              <Spinner show={true} />
+            </div>
+          ) : (
+            paginatedNews.length > 0 ? (
+              paginatedNews.map((item) => (
+                <NewsCard
+                  key={item._id}
+                  id={item._id}
+                  heading={item.title}
+                  summary={item.content}
+                  date={getDate(item.last_updated)}
+                  time={getTime(item.last_updated)}
+                  category={item.category}
+                />
+              ))
+            ) : (
+              <div className="text-center text-gray-500 mt-8">
+                No news articles found for this category.
+              </div>
+            )
+          )
+        }
 
         {newsData.length > ITEMS_PER_PAGE && (
           <div className="flex justify-between items-center mt-8">

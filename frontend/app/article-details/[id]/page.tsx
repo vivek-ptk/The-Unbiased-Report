@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import SourcesDialog, {  } from "./components/source";
 import axios from "axios";
 import BiasDialog from "./components/bias";
+import { Spinner } from "@/components/ui/spinner";
 
 
 
@@ -37,6 +38,7 @@ export default function ArticleDetail() {
   const [question, setQuestion] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [contentLoaded, setContentLoaded] = useState(false);
   const [latestSources, setLatestSources] = useState<{ source: string; url: string }[]>([]);
   const [sources, setSources] = useState<{ source: string; url: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -68,21 +70,22 @@ export default function ArticleDetail() {
   const handleCategoryClick = (category) => {
     router.push(`/${category.toLowerCase()}`);
   };
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     setScrolled(window.scrollY > 50);
+  //   };
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => window.removeEventListener("scroll", handleScroll);
+  // }, []);
 
   useEffect(() => {
     async function fetchArticle() {
       try {
-        console.log(process.env.BACKEND_URL)
+        setContentLoaded(false);
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/${id}`);
         const data = await res.json();
         setArticle(data);
+        setContentLoaded(true);
       } catch (err) {
         console.error("Failed to fetch article:", err);
       }
@@ -196,24 +199,31 @@ export default function ArticleDetail() {
       </div>
 
       {/* Article Content */}
-      <section className="mb-6">
-        <h2 className={`text-2xl font-semibold mb-2`}>{article.title}</h2>
-        <p className="text-md text-gray-800 leading-relaxed mb-2">
-          {article.content}
-        </p>
-        <div className="flex justify-between text-sm text-gray-500">
-          
-          <div className="flex items-center gap-2">
-            <span>{getTime(article.last_updated)}</span>
-            <Separator className="mx-2" orientation="vertical" />
-            <span>{getDate(article.last_updated)}</span>
+      {
+        contentLoaded ? (
+          <article className="space-y-4 mb-8">
+            <h2 className="text-2xl font-semibold">{article.title}</h2>
+            <p className="text-sm text-gray-500">
+              Last updated: {getDate(article.last_updated)} at {getTime(article.last_updated)}
+            </p>
+            <div className="text-gray-800" dangerouslySetInnerHTML={{ __html: article.content }} />
+          </article>
+        ) : (
+          <div className="flex items-center justify-center h-[60vh]">
+            <Spinner/>
           </div>
-          <div className="flex items-center gap-2">
-            <BiasDialog />
-            <SourcesDialog latestArticles={latestSources} allArticles={sources}/>
-          </div>
-        </div>
-      </section>
+        )
+      }
+
+      {/* Sources */}
+      {
+        contentLoaded && (
+        <div className="flex justify-end items-center gap-2">
+          <BiasDialog />
+          <SourcesDialog latestArticles={latestSources} allArticles={sources}/>
+        </div>)
+      }
+      
       {/* Conversation */}
       {conversation.length !== 0 && (<Separator className="my-6" />)}
       <section className="mb-28 space-y-4">
@@ -236,7 +246,20 @@ export default function ArticleDetail() {
       </section>
 
       <section className="fixed bottom-2 left-0 right-0 bg-white border rounded-lg px-4 py-2 flex items-center gap-2 max-w-3xl mx-auto">
-        <Textarea placeholder="Ask..." rows={1} className="flex-1 shadow-none max-h-[100px] resize-none border-0 focus:ring-0 focus-visible:ring-0" value={question} onChange={(e)=>{setQuestion(e.target.value)}} />
+        <Textarea
+          placeholder="Ask..."
+          rows={1}
+          className="flex-1 shadow-none max-h-[100px] resize-none border-0 focus:ring-0 focus-visible:ring-0"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+              handleAsk();
+            }
+          }}
+        />
         <Button variant="ghost" size="icon" className="cursor-pointer text-gray-600 hover:text-black" onClick={() => {window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth'}); handleAsk();}}>
           <Send className="h-5 w-5" />
         </Button>
