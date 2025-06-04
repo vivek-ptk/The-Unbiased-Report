@@ -80,11 +80,8 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [newsData, setNewsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const totalPages = Math.ceil(newsData.length / ITEMS_PER_PAGE);
-  const paginatedNews = newsData
-  .filter(item => item.content && item.content.trim() !== "")
-  .slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const handleHomeClick = () => {
     router.push('/');
   };
@@ -103,21 +100,23 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_URL}/${selectedCategory.toLowerCase()}`;
+        const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_URL}/${selectedCategory.toLowerCase()}?page=${page}&limit=10`;
         setLoading(true);
         const res = await fetch(endpoint);
         const data = await res.json();
-        setNewsData(data);
+        setNewsData(data.results);
+        setTotalPages(data.totalPages);
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch news:", error);
         setNewsData([]);
+        setTotalPages(0);
         setLoading(false);
       }
     };
-
+  
     fetchNews();
-  }, [selectedCategory]);
+  }, [selectedCategory, page]);
 
   function getDate(input) {
     const parsed = new Date(input);
@@ -204,8 +203,8 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
               <Spinner show={true} />
             </div>
           ) : (
-            paginatedNews.length > 0 ? (
-              paginatedNews.map((item) => (
+            newsData.length > 0 ? (
+              newsData.map((item) => (
                 <NewsCard
                   key={item._id}
                   id={item._id}
@@ -224,7 +223,7 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
           )
         }
 
-        {newsData.length > ITEMS_PER_PAGE && (
+        {totalPages > ITEMS_PER_PAGE && (
           <div className="flex justify-between items-center mt-8">
           <Button
             variant="outline"

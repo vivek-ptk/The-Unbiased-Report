@@ -222,20 +222,46 @@ router.get("/getBiasAnalysis/:id", async (req, res) => {
   }
 });
 
+function getPaginationParams(req) {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+}
+
 router.get("/all", async (req, res) => {
+  const { page, limit, skip } = getPaginationParams(req);
   const col = await getNewsCollection();
-  const results = await col.find({}, projectFields).sort({ last_updated: -1 }).toArray();
-  res.json(results);
+
+  const totalItems = await col.countDocuments();
+  const results = await col.find({}, projectFields)
+    .sort({ last_updated: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  const totalPages = Math.ceil(totalItems / limit);
+  res.json({ results, totalPages });
 });
 
 const categories = ["technology", "politics", "sports", "entertainment", "business"];
 categories.forEach(category => {
   router.get(`/${category}`, async (req, res) => {
+    const { page, limit, skip } = getPaginationParams(req);
     const col = await getNewsCollection();
-    const results = await col.find({ category: { $regex: `^${category}$`, $options: 'i' } }, projectFields).toArray();
-    res.json(results);
+
+    const query = { category: { $regex: `^${category}$`, $options: 'i' } };
+    const totalItems = await col.countDocuments(query);
+    const results = await col.find(query, projectFields)
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalPages = Math.ceil(totalItems / limit);
+    res.json({ results, totalPages });
   });
 });
+
 
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
