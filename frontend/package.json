@@ -15,6 +15,7 @@
     "@radix-ui/react-separator": "^1.1.6",
     "@radix-ui/react-slot": "^1.2.2",
     "@radix-ui/react-tooltip": "^1.2.6",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",

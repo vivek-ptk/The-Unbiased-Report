@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import classNames from "classnames";
-import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase } from 'lucide-react';
+import { Newspaper, Volleyball, Flag, Film, Wifi, Briefcase, Menu, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -15,11 +15,11 @@ const NewsCard = ({ id, heading, summary, date, time, category }: { id: string; 
   return (
     <Card className="rounded-none shadow-md p-4 mb-4 cursor-pointer" onClick={() => router.push(`/article-details/${id}`)}>
       <CardContent className="p-0">
-        <div className="flex items-center justify-between ">
+        <div className="flex items-center justify-between gap-2">
           <h2 className={`text-xl font-semibold mb-2`}>{heading}</h2>
           <CategoryIconSmall category={category} />
         </div>
-        <p className="text-md text-gray-800 mb-4 leading-relaxed">{summary}</p>
+        <p className="text-md text-gray-800 mb-4 leading-relaxed line-clamp-6">{summary}</p>
         <div className="flex justify-between text-sm text-gray-500">
           <span>{date}</span>
           <span>{time}</span>
@@ -81,6 +81,7 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
   const [newsData, setNewsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleHomeClick = () => {
     router.push('/');
@@ -137,115 +138,151 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
   }
 
   return (
-    <main className="max-w-4xl mx-auto py-10 px-4">
-      <div
+    <main className="max-w-4xl mx-auto py-10 px-4 max-md:py-5 ">
+  <div
+    className={classNames(
+      "transition-transform duration-100 bg-white w-full max-md:flex max-md:items-end max-md:justify-center",
+      scrolled
+        ? "fixed top-0 left-0 w-full z-50 bg-white shadow-md py-2 px-4 flex items-end justify-center"
+        : "text-center mb-6 flex flex-col justify-center",
+      menuOpen ? "max-md:flex-col justify-start" : ""
+    )}
+    style={{ fontFamily: "Tahoma, sans-serif" }}
+  >
+    <div className="flex items-center justify-center w-auto max-md:justify-between max-md:w-full">
+      <h1
+        onClick={handleHomeClick}
         className={classNames(
-          "transition-transform duration-100",
-          scrolled ? "fixed top-0 left-0 w-full z-50 bg-white shadow-md py-2 px-4 flex items-end justify-center" : "text-center mb-6 flex flex-col justify-center"
+          `font-serif font-bold w-fit text-nowrap transition-transform text-gray-800 cursor-pointer`,
+          scrolled ? "text-2xl text-left mb-1" : "text-left text-4xl max-md:text-3xl max-sm:text-3xl",
         )}
-        style={{ fontFamily: "Tahoma, sans-serif" }}
+        style={{ fontFamily: '"Old English Text MT", serif' }}
       >
-        <h1
-          onClick={handleHomeClick}
-          className={classNames(
-            `font-serif font-bold transition-transform text-gray-800 cursor-pointer`,
-            scrolled ? "text-2xl text-left mb-1" : "text-4xl"
-          )}
-          style={{ fontFamily: '"Old English Text MT", serif' }}
+        The Unbiased Report
+      </h1>
+
+      {/* Mobile Hamburger */}
+      {
+        scrolled && 
+        (<button
+          className="md:hidden p-2 ml-4"
+          onClick={() => setMenuOpen(!menuOpen)}
         >
-          The Unbiased Report
-        </h1>
-        <div className={classNames(!scrolled ? "border-t-3 mt-4 border-gray-500" : "h-8 mb-1 border-r-3 mx-4 border-gray-500")}></div>
-        <nav
-          className={classNames(
-            "flex flex-wrap gap-4 justify-center transition-transform mt-2",
-            scrolled ? "justify-start " : "mb-8 border-b border-gray-300 "
-          )}
-        >
-          {categories.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-            <div 
-              className="hover:bg-gray-100 h-full group flex flex-col items-center cursor-pointer" 
-              key={cat}
-              onClick={() => {
-                setSelectedCategory(cat);
-                setPage(1);
-                router.push(cat === "All" ? "/" : `/${cat.toLowerCase()}`);
-              }}
+          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>)
+      }
+    </div>
+
+    <div
+      className={classNames(
+        !scrolled
+          ? "border-t-3 mt-4 border-gray-500"
+          : "h-8 mb-1 border-r-3 mx-4 border-gray-500 max-md:hidden",
+      )}
+    />
+
+    {/* Nav - show on md+ OR if mobile menu is open */}
+    {/* <div className="p-2 w-full max-md:w-auto"> */}
+    <nav
+      className={classNames(
+        "flex gap-4 transition-transform mt-2 w-full  ",
+        scrolled ? "justify-center max-md:flex-wrap !w-fit" : " mb-8 max-md:mb-0 border-b border-gray-300",
+        !scrolled || menuOpen ? "" : "hidden",
+        "md:flex md:flex-row md:justify-center max-md:overflow-x-auto max-md:w-full",
+      )}
+      // style={{
+      //   scrollbarWidth: 'none', // Firefox
+      //   msOverflowStyle: 'none', // IE 10+
+      // }}
+    >
+      {categories.map((cat) => {
+        const isSelected = selectedCategory === cat;
+        return (
+          <div
+            className="hover:bg-gray-100 h-full group flex flex-col items-center cursor-pointer  md:mb-0"
+            key={cat}
+            onClick={() => {
+              setSelectedCategory(cat);
+              // setMenuOpen(true);
+              setPage(1);
+              router.push(cat === "All" ? "/" : `/${cat.toLowerCase()}`);
+              // setMenuOpen(true); // close mobile menu on selection
+            }}
+          >
+            <Button
+              variant={"ghost"}
+              className={classNames(
+                "text-md h-full font-medium hover:text-black pointer-events-none",
+                scrolled && isSelected ? "bg-muted" : ""
+              )}
             >
-              <Button
-                variant={"ghost"}
-                className={classNames( "text-md h-full font-medium  hover:text-black pointer-events-none",
-                  scrolled && isSelected ? "bg-muted" : ""
-                )}
-              >
-                <CategoryIcon category={cat} />
-                <span>{cat}</span>
-              </Button>
-              {/* Underline element */}
-              <div
-                className={classNames(
-                  "w-full h-0.5 transition-colors",
-                  isSelected ? "border-b-2 border-black" : "border-b-2 border-transparent group-hover:border-gray-500",
-                  scrolled ? "hidden" : "block"
-                )}
-              />
-            </div>
-          )})}
-        </nav>
-      </div>
+              <CategoryIcon category={cat} />
+              <span>{cat}</span>
+            </Button>
+            <div
+              className={classNames(
+                "w-full h-0.5 transition-colors",
+                isSelected
+                  ? "border-b-2 border-black"
+                  : "border-b-2 border-transparent group-hover:border-gray-500",
+                scrolled ? "hidden" : "block"
+              )}
+            />
+          </div>
+        );
+      })}
+    </nav>
+    {/* </div> */}
+  </div>
 
-      <div className={scrolled ? "pt-32" : ""}>
-        {
-          loading ? (
-            <div className="flex justify-center items-center h-[calc(100vh-200px)]">
-              <Spinner show={true} />
-            </div>
-          ) : (
-            newsData.length > 0 ? (
-              newsData.map((item) => (
-                <NewsCard
-                  key={item._id}
-                  id={item._id}
-                  heading={item.title}
-                  summary={item.content}
-                  date={getDate(item.last_updated)}
-                  time={getTime(item.last_updated)}
-                  category={item.category}
-                />
-              ))
-            ) : (
-              <div className="text-center text-gray-500 mt-8">
-                No news articles found for this category.
-              </div>
-            )
-          )
-        }
-
-        {totalPages > ITEMS_PER_PAGE && (
-          <div className="flex justify-between items-center mt-8">
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-gray-700">
-            Page {page} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-            disabled={page === totalPages}
-          >
-            Next
-          </Button>
-        </div>)}
+  {/* Content Section */}
+  <div className={scrolled ? "pt-32" : ""}>
+    {loading ? (
+      <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+        <Spinner show={true} />
       </div>
-    </main>
+    ) : newsData.length > 0 ? (
+      newsData.map((item) => (
+        <NewsCard
+          key={item._id}
+          id={item._id}
+          heading={item.title}
+          summary={item.content}
+          date={getDate(item.last_updated)}
+          time={getTime(item.last_updated)}
+          category={item.category}
+        />
+      ))
+    ) : (
+      <div className="text-center text-gray-500 mt-8">
+        No news articles found for this category.
+      </div>
+    )}
+
+    {totalPages > ITEMS_PER_PAGE && (
+      <div className="flex justify-between items-center mt-8">
+        <Button
+          variant="outline"
+          className="cursor-pointer"
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+        >
+          Previous
+        </Button>
+        <span className="text-sm text-gray-700">
+          Page {page} of {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          className="cursor-pointer"
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    )}
+  </div>
+</main>
   );
 }

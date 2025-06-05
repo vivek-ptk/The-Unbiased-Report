@@ -178,20 +178,20 @@ export default function ArticleDetail() {
     <main className="max-w-3xl mx-auto py-10 px-4">
       {/* Header */}
       <div className="text-center mb-6 flex flex-col justify-center max-w-3xl">
-        <div className={classNames("flex items-end mb-2", scrolled ? " fixed top-0 left-0 w-full z-50 bg-white shadow-md py-2 px-4 justify-center" : "justify-between")}>
+        <div className={classNames("flex items-end mb-2", scrolled ? " fixed top-0 left-0 w-full z-50 bg-white shadow-md py-4 px-4 justify-center" : "justify-between")}>
           <h1
             onClick={handleHomeClick}
             className={classNames(
-              "font-serif font-bold transition-transform text-gray-800 cursor-pointer", 
-              scrolled ? "transform-none text-2xl mr-3" : "transform translate-y-0 text-4xl"
+              "font-serif font-bold transition-transform text-gray-800 cursor-pointer w-fit text-nowrap", 
+              scrolled ? "transform-none text-2xl max-md:text-xl mr-3" : "transform translate-y-0 text-4xl max-md:text-3xl max-sm:text-2xl"
             )}
             style={{ fontFamily: 'Old English Text MT, serif' }}
           >
             The Unbiased Report
           </h1>
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleCategoryClick(article.category)}>
+          <div className="flex items-center gap-2 cursor-pointer " onClick={() => handleCategoryClick(article.category)}>
             <div className={classNames("h-8 border-l-3 mx-4 border-gray-500", scrolled ? "" : "")}></div>
-            <span style={{ fontFamily: "Tahoma, sans-serif" }} >{article.category}</span>
+            <span className="max-md:hidden" style={{ fontFamily: "Tahoma, sans-serif" }} >{article.category}</span>
             <CategoryIcon category={article.category} size={18}/>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function ArticleDetail() {
       {/* Article Content */}
       {
         contentLoaded ? (
-          <article className="space-y-4 mb-8">
+          <article className="space-y-4 mb-8 max-w-[95%] mx-auto">
             <h2 className="text-2xl font-semibold">{article.title}</h2>
             <p className="text-sm text-gray-500">
               Last updated: {getDate(article.last_updated)} at {getTime(article.last_updated)}
@@ -245,7 +245,7 @@ export default function ArticleDetail() {
       )}
       </section>
 
-      <section className="fixed bottom-2 left-0 right-0 bg-white border rounded-lg px-4 py-2 flex items-center gap-2 max-w-3xl mx-auto">
+      <section className="fixed bottom-2 left-2 right-2 bg-white border rounded-lg px-4 py-2 flex items-center gap-2 max-w-3xl mx-auto ">
         <Textarea
           placeholder="Ask..."
           rows={1}
