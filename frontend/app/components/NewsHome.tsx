@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,6 +70,14 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
   const router = useRouter();
   const pathname = usePathname();
   const pathCategory = decodeURIComponent(categoryParam || "");
+  const selectedTabRef = useRef(null);
+  useEffect(() => {
+    selectedTabRef.current?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center", // or "nearest" or "start"
+      block: "nearest",
+    });
+  }, []);
 
   const initialCategory = categories.includes(pathCategory.charAt(0).toUpperCase() + pathCategory.slice(1))
     ? pathCategory.charAt(0).toUpperCase() + pathCategory.slice(1)
@@ -185,16 +193,17 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
     {/* <div className="p-2 w-full max-md:w-auto"> */}
     <nav
       className={classNames(
-        "flex gap-4 transition-transform mt-2 w-full  ",
-        scrolled ? "justify-center max-md:flex-wrap !w-fit" : " mb-8 max-md:mb-0 border-b border-gray-300",
-        !scrolled || menuOpen ? "" : "hidden",
-        "md:flex md:flex-row md:justify-center max-md:overflow-x-auto max-md:w-full",
-      )}
-      // style={{
-      //   scrollbarWidth: 'none', // Firefox
-      //   msOverflowStyle: 'none', // IE 10+
-      // }}
+        "flex gap-4 transition-transform mt-2 w-full scroll-smooth",
+          scrolled ? "justify-center max-md:flex-wrap !w-fit" : " mb-8 max-md:mb-0 border-b border-gray-300",
+          !scrolled || menuOpen ? "" : "hidden",
+          "md:flex md:flex-row md:justify-center max-md:overflow-x-auto max-md:w-full",
+        )}
+        style={{
+          scrollbarWidth: 'none',           // Firefox
+          msOverflowStyle: 'none',          // IE 10+
+        }}
     >
+
       {categories.map((cat) => {
         const isSelected = selectedCategory === cat;
         return (
@@ -208,6 +217,7 @@ export default function NewsHome({ categoryParam }: { categoryParam?: string }) 
               router.push(cat === "All" ? "/" : `/${cat.toLowerCase()}`);
               // setMenuOpen(true); // close mobile menu on selection
             }}
+            ref={isSelected ? selectedTabRef : null}
           >
             <Button
               variant={"ghost"}

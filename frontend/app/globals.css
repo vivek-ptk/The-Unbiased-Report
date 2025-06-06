@@ -120,3 +120,14 @@
     @apply bg-background text-foreground;
   }
 }
+.scrollbar-hidden-x {
+  overflow-x: scroll;
+  scrollbar-height: auto;
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hidden-x::-webkit-scrollbar {
+  height: 0px; /* Hide scrollbar in WebKit */
+}
+.scrollbar-hover-x:hover::-webkit-scrollbar {
+  height: 6px; /* Show on hover */
+}
