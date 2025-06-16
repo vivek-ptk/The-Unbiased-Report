@@ -74,3 +74,11 @@ Both frontend and server are in the same repo.
 ```bash
 npm install
 npm run dev
+```
+---
+
+## 💻 ML Backend Repositories
+
+* **Article Parsing System:** [https://github.com/roshanbiswanath/UnbiasedReportParsingSystem](https://github.com/roshanbiswanath/UnbiasedReportParsingSystem)
+* **Article Scrapping System:** [https://github.com/roshanbiswanath/UnbiasedReportScrapingSystem](https://github.com/roshanbiswanath/UnbiasedReportScrapingSystem)
+* **Article Aggregation System:** [https://github.com/roshanbiswanath/UnbiasedReportAggregationSystem](https://github.com/roshanbiswanath/UnbiasedReportAggregationSystem)
